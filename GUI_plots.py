@@ -104,23 +104,19 @@ class RealTimePlot(QtWidgets.QWidget):
         self.checkbox_group = QtWidgets.QGroupBox("Visible Signals")
         self.steer_check = QtWidgets.QCheckBox("Steer Angle Sensor")
         self.ins_check = QtWidgets.QCheckBox("INS Wheel Angle")
-        self.keya_check = QtWidgets.QCheckBox("Keya Encoder")
         self.kalman_check = QtWidgets.QCheckBox("Kalman Wheel Angle")
         
         self.steer_check.setChecked(True)
         self.ins_check.setChecked(True)
-        self.keya_check.setChecked(True)
         self.kalman_check.setChecked(True)
         
         self.steer_check.stateChanged.connect(lambda: self.toggle_visibility('steerAngleSens'))
         self.ins_check.stateChanged.connect(lambda: self.toggle_visibility('insWheelAngle'))
-        self.keya_check.stateChanged.connect(lambda: self.toggle_visibility('keyaEncoder'))
         self.kalman_check.stateChanged.connect(lambda: self.toggle_visibility('KalmanWheelAngle'))
         
         checkbox_layout = QtWidgets.QVBoxLayout()
         checkbox_layout.addWidget(self.steer_check)
         checkbox_layout.addWidget(self.ins_check)
-        checkbox_layout.addWidget(self.keya_check)
         checkbox_layout.addWidget(self.kalman_check)
         self.checkbox_group.setLayout(checkbox_layout)
         
@@ -128,13 +124,11 @@ class RealTimePlot(QtWidgets.QWidget):
         self.request_group = QtWidgets.QGroupBox("Requested Info")
         self.gps_check = QtWidgets.QCheckBox("GPS")
         self.experiment_check = QtWidgets.QCheckBox("EXPERIMENT")
-        self.keya_check_req = QtWidgets.QCheckBox("KEYA")
         self.was_check = QtWidgets.QCheckBox("WAS")
         self.info_check = QtWidgets.QCheckBox("INFO")
 
         self.gps_check.stateChanged.connect(lambda: self.send_request('GPS', self.gps_check.isChecked()))
         self.experiment_check.stateChanged.connect(lambda: self.send_request('EXPERIMENT', self.experiment_check.isChecked()))
-        self.keya_check_req.stateChanged.connect(lambda: self.send_request('KEYA', self.keya_check_req.isChecked()))
         self.was_check.stateChanged.connect(lambda: self.send_request('WAS', self.was_check.isChecked()))
         self.info_check.stateChanged.connect(lambda: self.send_request('INFO', self.info_check.isChecked()))
         
@@ -212,7 +206,6 @@ class RealTimePlot(QtWidgets.QWidget):
         request_layout = QtWidgets.QVBoxLayout()
         request_layout.addWidget(self.gps_check)
         request_layout.addWidget(self.experiment_check)
-        request_layout.addWidget(self.keya_check_req)
         request_layout.addWidget(self.was_check)
         request_layout.addWidget(self.info_check)
         self.request_group.setLayout(request_layout)
@@ -287,8 +280,6 @@ class RealTimePlot(QtWidgets.QWidget):
                 self.ax.plot(t, self.data['steerAngleSens'], label='Steer Angle Sensor')
             if self.visibility['insWheelAngle']:
                 self.ax.plot(t, self.data['insWheelAngle'], label='INS Wheel Angle')
-            if self.visibility['keyaEncoder']:
-                self.ax.plot(t, self.data['keyaEncoder'], label='Keya Encoder')
             if self.visibility['KalmanWheelAngle']:
                 self.ax.plot(t, self.data['KalmanWheelAngle'], label='Kalman Wheel Angle')
             

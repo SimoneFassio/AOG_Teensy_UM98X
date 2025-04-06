@@ -1,3 +1,22 @@
+/* Copywrite 2024 chriskinal
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+Forked from https://github.com/AgHardware/Boards/blob/main/TeensyModules/AIO%20Standard%20v4/Firmware/Autosteer_gps_teensy_v4/Autosteer_gps_teensy_v4.ino
+*/
+
+/*
+Updated by Simone Fassio, 2025
+This code is a fork of the original code, which is licensed under the GNU General Public License v3.0.
+My main contribution are: 
+- the addition of support for the UM981 GPS module, which is a different GPS module than the one used in the original code.
+- implementation of a Kalman filter for estimating the wheel angle using an encoder instead of the WAS.
+*/
+
+
+
 // UM982 Connection plan:
 // Teensy Serial 7 RX (28) to F9P Position receiver TX1 (Position data)
 // Teensy Serial 7 TX (29) to F9P Position receiver RX1 (RTCM data for RTK)
@@ -18,8 +37,8 @@
 #endif // ARDUINO_TEENSY41
 
 /************************* User Settings *************************/
-#define PCB_VERSION_0_1  // PCB version 0.1
-//#define PCB_VERSION_1_0  // PCB version 1.0
+//#define PCB_VERSION_0_1  // PCB version 0.1
+#define PCB_VERSION_1_0  // PCB version 1.0
 
 bool udpPassthrough = false;  // False = GPS neeeds to send GGA, VTG & HPR messages. True = GPS needs to send KSXT messages only.
 bool makeOGI = true;          // Set to true to make PAOGI messages. Else PANDA message will be made.
