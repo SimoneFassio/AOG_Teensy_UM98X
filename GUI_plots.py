@@ -28,17 +28,22 @@ class UdpWorker(QObject):
         
     def run(self):
         self.setup_sockets()
+        socks = [self.plot_sock, self.debug_sock]
+        
         while self.running:
-            try:
-                data, _ = self.plot_sock.recvfrom(1024)
-                if data:
-                    self.new_plot_data.emit(data.decode())
-                    
-                data, _ = self.debug_sock.recvfrom(1024)
-                if data:
-                    self.new_debug_data.emit(data.decode())
-            except:
-                pass
+            # Use select to wait for data on any socket (with 1ms timeout)
+            readable, _, _ = select.select(socks, [], [], 0.001)
+            
+            for sock in readable:
+                try:
+                    data, _ = sock.recvfrom(1024)
+                    if data:
+                        if sock is self.plot_sock:
+                            self.new_plot_data.emit(data.decode())
+                        elif sock is self.debug_sock:
+                            self.new_debug_data.emit(data.decode())
+                except Exception as e:
+                    print(f"Socket error: {e}")
 
 class RealTimePlot(QtWidgets.QWidget):
     def __init__(self):
