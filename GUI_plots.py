@@ -2,12 +2,13 @@ import sys
 import socket
 import threading
 from collections import deque
-from PyQt5 import QtWidgets, QtCore, QtNetwork
+from PyQt5 import QtWidgets, QtCore, QtNetwork, QtGui
 from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 from PyQt5.QtNetwork import QUdpSocket
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.animation as animation
+import select
 
 class UdpWorker(QObject):
     new_plot_data = pyqtSignal(str)
@@ -101,6 +102,19 @@ class RealTimePlot(QtWidgets.QWidget):
         
         self.debug_terminal = QtWidgets.QTextEdit()
         self.debug_terminal.setReadOnly(True)
+        
+        # Enable touch screen scrolling features
+        self.debug_terminal.viewport().setAttribute(QtCore.Qt.WA_AcceptTouchEvents, True)
+        # Enable kinetic/momentum scrolling
+        self.debug_terminal.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        # Make it easier to grab and scroll with fingers
+        scrollbar = self.debug_terminal.verticalScrollBar()
+        scrollbar.setStyleSheet("""
+            QScrollBar:vertical {
+                width: 18px;
+            }
+        """)
+        
         # Auto-scroll toggle for debug terminal
         self.autoscroll_checkbox = QtWidgets.QCheckBox("Auto-scroll debug")
         self.autoscroll_checkbox.setChecked(True)
@@ -270,11 +284,25 @@ class RealTimePlot(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(str)
     def handle_debug_data(self, message):
-        self.debug_terminal.insertPlainText(message)
+        # Store current scrollbar position and check if we were at the bottom
+        scrollbar = self.debug_terminal.verticalScrollBar()
+        was_at_bottom = scrollbar.value() >= scrollbar.maximum() - 10 or self.autoscroll_checkbox.isChecked()
+        
+        # Insert the text
+        cursor = self.debug_terminal.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.insertText(message)
+        self.debug_terminal.setTextCursor(cursor)
+        
+        # Print to console
         print(message, end="")
-        if self.autoscroll_checkbox.isChecked():
-            self.debug_terminal.verticalScrollBar().setValue(
-                self.debug_terminal.verticalScrollBar().maximum())
+        
+        # Force UI update before scrolling
+        QtWidgets.QApplication.processEvents()
+        
+        # Scroll to bottom if we were at bottom or auto-scroll is checked
+        if was_at_bottom:
+            scrollbar.setValue(scrollbar.maximum())
 
     def update_plot(self, frame):
         self.ax.clear()
