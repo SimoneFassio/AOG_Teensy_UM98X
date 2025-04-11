@@ -1,5 +1,5 @@
 // Buffer configuration
-const size_t BUFFER_SIZE = 1000;
+const size_t BUFFER_SIZE = UDP_TX_PACKET_MAX_SIZE;
 const unsigned long SEND_INTERVAL = 200; // milliseconds
 
 // Global variables
@@ -19,7 +19,7 @@ void udpDebugReceive()
 
   unsigned int packetLength = Eth_udpDebug.parsePacket();
 
-  if (packetLength)
+  if (packetLength>2)
   {
     char packetBuffer[255];
     Eth_udpDebug.read(packetBuffer, packetLength);
@@ -80,12 +80,16 @@ void sendBuffer() {
     return;
   }
   
-  if (currentPos > 0 && systick_millis_count>10000) {
+  if (currentPos > 0) {
     Eth_udpDebug.beginPacket(Eth_ipDestination, portDebugOUT);
     Eth_udpDebug.write(buffer, currentPos);
     Eth_udpDebug.endPacket();
     currentPos = 0;
     lastSendTime = systick_millis_count;
+  }
+  else {
+    // Reset the buffer if no data to send at startup
+    currentPos = 0;
   }
 }
 

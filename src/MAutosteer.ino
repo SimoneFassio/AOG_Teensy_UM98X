@@ -63,7 +63,7 @@ float KalmanWheelAngle   = 0.0;
 #include "zADS1115.h"
 ADS1115_lite adc(ADS1115_DEFAULT_ADDRESS); // Use this for the 16-bit version ADS1115
 
-SimpleKalmanFilter wheelSensor(0.1, 0.1, 0.1);
+SimpleKalmanFilter wheelSensor(0.1, 0.1, 0.001);
 
 #include <IPAddress.h>
 #include "BNO08x_AOG.h"
@@ -517,7 +517,7 @@ void autosteerLoop()
       steerAngleActual = KalmanWheelAngle;
     }
 
-    if(debugState == WAS || send_WAS){
+    if(debugState == WAS){
       debugPrint("sens:");
       debugPrint(steerAngleSens);
       debugPrint(",");

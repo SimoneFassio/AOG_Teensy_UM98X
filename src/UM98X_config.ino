@@ -181,9 +181,13 @@ void configureUM981(){
         debugPrintln();
         delay(100);
 
-        while ((SerialGPS.available()))
+        while (SerialGPS.available())
         {
-          debugPrint((char)SerialGPS.read());
+          SerialGPS.readBytesUntil('\n', incoming, 300);
+          if (strncmp(incoming, "$command", 8) == 0) // Check if the message starts with "$command"
+          {
+            debugPrintln(incoming); // Print the message if it matches
+          }
         }
 
         // Reset the serial buffer size
@@ -352,9 +356,13 @@ void configureUM982(){
         debugPrintln();
         delay(100);
 
-        while ((SerialGPS.available()))
+        while (SerialGPS.available())
         {
-          debugPrint((char)SerialGPS.read());
+          SerialGPS.readBytesUntil('\n', incoming, 300);
+          if (strncmp(incoming, "$command", 8) == 0) // Check if the message starts with "$command"
+          {
+            debugPrintln(incoming); // Print the message if it matches
+          }
         }
 
         // Reset the serial buffer size

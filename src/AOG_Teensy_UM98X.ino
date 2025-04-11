@@ -36,9 +36,11 @@ My main contribution are:
 #include <InternalTemperature.h>
 #endif // ARDUINO_TEENSY41
 
+#define UDP_TX_PACKET_MAX_SIZE 500
+
 /************************* User Settings *************************/
-//#define PCB_VERSION_0_1  // PCB version 0.1
-#define PCB_VERSION_1_0  // PCB version 1.0
+#define PCB_VERSION_0_1  // PCB version 0.1
+//#define PCB_VERSION_1_0  // PCB version 1.0
 
 bool udpPassthrough = false;  // False = GPS neeeds to send GGA, VTG & HPR messages. True = GPS needs to send KSXT messages only.
 bool makeOGI = true;          // Set to true to make PAOGI messages. Else PANDA message will be made.
@@ -221,7 +223,7 @@ NMEAParser<3> parser;
 
 bool blink = false;
 
-bool Autosteer_running = false; // Auto set off in autosteer setup
+bool Autosteer_running = true; // Auto set off in autosteer setup
 bool Ethernet_running = false; // Auto set on in ethernet setup
 
 float tempWT;

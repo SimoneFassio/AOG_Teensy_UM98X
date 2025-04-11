@@ -39,8 +39,6 @@ void EthernetStart()
   debugPrint("IP set Manually: ");
   debugPrintln(Ethernet.localIP());
 
-  Ethernet_running = true;
-
   Eth_ipDestination[0] = Eth_myip[0];
   Eth_ipDestination[1] = Eth_myip[1];
   Eth_ipDestination[2] = Eth_myip[2];
@@ -80,5 +78,7 @@ void EthernetStart()
     debugPrint("Ethernet Debug UDP listening from port: ");
     debugPrintln(portDebugIN);
   }
+
+  Ethernet_running = true;
 #endif
 }

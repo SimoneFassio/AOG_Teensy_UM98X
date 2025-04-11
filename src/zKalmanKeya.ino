@@ -51,12 +51,12 @@ void angleStimeUpdate(){
     }
     angleVariance /= (lenVarianceBuffer - 1);
 
-    if (debugState || send_EXPERIMENT){
+    if (debugState){
       debugPrint("Variance ");
       debugPrintln(angleVariance);
     }
   }
-  if (debugState == EXPERIMENT || send_EXPERIMENT){
+  if (debugState == EXPERIMENT){
       debugPrint("speed ");
       debugPrint(speed);
       debugPrint(" insWheelAngle ");

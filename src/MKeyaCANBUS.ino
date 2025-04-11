@@ -73,7 +73,7 @@ bool isPatternMatch(const CAN_message_t &message, const uint8_t *pattern, size_t
 
 void printIdAndReply(uint32_t id, uint8_t buf[8])
 {
-  if(debugState==KEYA || send_KEYA){
+  if(debugState==KEYA){
     debugPrint(systick_millis_count);
     debugPrint(" -> ");
     debugPrint(id, HEX);
@@ -129,7 +129,7 @@ void SteerKeya(int steerSpeed)
   if (steerSpeed == 0)
   {
     keyaCommand(keyaDisableCommand);
-    if (debugState == KEYA|| send_KEYA)
+    if (debugState == KEYA)
       debugPrintln("steerSpeed zero - disabling");
     return; // don't need to go any further, if we're disabling, we're disabling
   }
@@ -137,9 +137,9 @@ void SteerKeya(int steerSpeed)
   if (keyaDetected)
   {
     actualSpeed = map(steerSpeed, -255, 255, -995, 995);
-    if (debugState == KEYA|| send_KEYA)
+    if (debugState == KEYA)
       debugPrintln("told to steer, with " + String(steerSpeed) + " so....");
-    if (debugState == KEYA|| send_KEYA)
+    if (debugState == KEYA)
       debugPrintln("I converted that to speed " + String(actualSpeed));
 
     CAN_message_t KeyaBusSendData;
@@ -153,7 +153,7 @@ void SteerKeya(int steerSpeed)
       KeyaBusSendData.buf[5] = lowByte(actualSpeed);
       KeyaBusSendData.buf[6] = 0xff;
       KeyaBusSendData.buf[7] = 0xff;
-      if (debugState == KEYA|| send_KEYA)
+      if (debugState == KEYA)
         debugPrintln("pwmDrive < zero - clockwise - steerSpeed " + String(steerSpeed));
     }
     else
@@ -162,7 +162,7 @@ void SteerKeya(int steerSpeed)
       KeyaBusSendData.buf[5] = lowByte(actualSpeed);
       KeyaBusSendData.buf[6] = 0x00;
       KeyaBusSendData.buf[7] = 0x00;
-      if (debugState == KEYA|| send_KEYA)
+      if (debugState == KEYA)
         debugPrintln("pwmDrive > zero - anticlock-clockwise - steerSpeed " + String(steerSpeed));
     }
     Keya_Bus.write(KeyaBusSendData);
@@ -196,7 +196,7 @@ void KeyaBus_Receive()
       // TODO Yeah, if we ever see something here, fire off a disable, refuse to engage autosteer or..?
       uint32_t time = millis();
       keyaMotorStatus = !bitRead(KeyaBusReceiveData.buf[7], 0);
-      if(debugState == KEYA|| send_KEYA){
+      if(debugState == KEYA){
         debugPrint(time);
         debugPrint(" ");
         debugPrint(time - hbTime);
@@ -258,7 +258,7 @@ void KeyaBus_Receive()
           if (steerSwitch == 0 && keyaMotorStatus == 1)
           {            
             keyaMotorStatus = !bitRead(KeyaBusReceiveData.buf[7], 0);  //necessario ??  #######################################
-            if(debugState == KEYA|| send_KEYA){
+            if(debugState == KEYA){
               debugPrint("\r\nMotor disabled");
               debugPrint(" - set AS off");
             }
@@ -325,7 +325,7 @@ void KeyaBus_Receive()
         }
         else if (bitRead(KeyaBusReceiveData.buf[6], 6))
         {
-          if(debugState == KEYA|| send_KEYA)
+          if(debugState == KEYA)
             debugPrintln("\r\nCAN disconnected");
         }
         else if (bitRead(KeyaBusReceiveData.buf[6], 7))
@@ -369,7 +369,7 @@ void KeyaBus_Receive()
         uint32_t time = millis();
         keyaTime = time;
         printIdAndReply(KeyaBusReceiveData.id, KeyaBusReceiveData.buf);
-        if(debugState == KEYA|| send_KEYA){
+        if(debugState == KEYA){
           debugPrint(" current reply ");
           debugPrint(KeyaBusReceiveData.buf[4]);
         }
@@ -384,7 +384,7 @@ void KeyaBus_Receive()
             KeyaBusReceiveData.buf[6] << 16 | 
             KeyaBusReceiveData.buf[5] << 8 | 
             KeyaBusReceiveData.buf[4];
-        if(debugState == KEYA|| send_KEYA){
+        if(debugState == KEYA){
           debugPrint(" encoder reply ");
           debugPrint(keyaEncoderValue);
         }
@@ -471,7 +471,7 @@ void KeyaBus_Receive()
         keyaEncoderSpeed = KeyaBusReceiveData.buf[5] << 8 | KeyaBusReceiveData.buf[4];
         if(keyaEncoderSpeed>65000)
           keyaEncoderSpeed=keyaEncoderSpeed-65536;
-        if(debugState == KEYA|| send_KEYA){
+        if(debugState == KEYA){
           debugPrint(" encoder speed reply ");
           debugPrint(keyaEncoderSpeed);
         }
@@ -480,7 +480,7 @@ void KeyaBus_Receive()
           KeyaCurrentRapport = KeyaCurrentSensorReading/abs(keyaEncoderSpeed)*200;
           KeyaCurrentRapportSmooth = KeyaCurrentRapportSmooth*0.7 + KeyaCurrentRapport*0.3;
 
-          if(debugState == KEYA|| send_KEYA){
+          if(debugState == KEYA){
           debugPrint(" current/speed ");
           debugPrint(KeyaCurrentRapportSmooth);
           }
