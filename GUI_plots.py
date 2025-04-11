@@ -46,6 +46,77 @@ class UdpWorker(QObject):
                 except Exception as e:
                     print(f"Socket error: {e}")
 
+class TouchFriendlyTextEdit(QtWidgets.QTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setReadOnly(True)
+        self.viewport().setAttribute(QtCore.Qt.WA_AcceptTouchEvents, True)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard | 
+                                    QtCore.Qt.TextSelectableByMouse)
+        self.last_pos = None
+        self.velocity = 0
+        self.deceleration_timer = QtCore.QTimer(self)
+        self.deceleration_timer.timeout.connect(self.decelerate)
+        
+        # Make scrollbar easy to grab
+        scrollbar = self.verticalScrollBar()
+        scrollbar.setStyleSheet("""
+            QScrollBar:vertical {
+                width: 24px;
+                background-color: #f0f0f0;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #c0c0c0;
+                min-height: 30px;
+                border-radius: 4px;
+                margin: 4px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background-color: #a0a0a0;
+            }
+        """)
+    
+    def viewportEvent(self, event):
+        if event.type() == QtCore.QEvent.TouchBegin:
+            # Reset tracking
+            self.last_pos = event.touchPoints()[0].pos().y()
+            self.deceleration_timer.stop()
+            self.velocity = 0
+            return True
+            
+        elif event.type() == QtCore.QEvent.TouchUpdate:
+            # Calculate scroll distance
+            current_pos = event.touchPoints()[0].pos().y()
+            if self.last_pos is not None:
+                delta = self.last_pos - current_pos
+                scrollbar = self.verticalScrollBar()
+                scrollbar.setValue(scrollbar.value() + delta)
+                
+                # Update velocity for inertial scrolling
+                self.velocity = delta
+                
+            self.last_pos = current_pos
+            return True
+            
+        elif event.type() == QtCore.QEvent.TouchEnd:
+            # Start deceleration timer for inertial scrolling
+            if abs(self.velocity) > 2:
+                self.deceleration_timer.start(16)  # ~60fps
+            return True
+            
+        return super().viewportEvent(event)
+    
+    def decelerate(self):
+        # Apply deceleration
+        self.velocity *= 0.95
+        scrollbar = self.verticalScrollBar()
+        scrollbar.setValue(scrollbar.value() + self.velocity)
+        
+        # Stop when velocity becomes negligible
+        if abs(self.velocity) < 0.5:
+            self.deceleration_timer.stop()
+
 class RealTimePlot(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -100,20 +171,8 @@ class RealTimePlot(QtWidgets.QWidget):
         self.ax = self.fig.add_subplot(111)
         self.canvas = FigureCanvas(self.fig)
         
-        self.debug_terminal = QtWidgets.QTextEdit()
-        self.debug_terminal.setReadOnly(True)
-        
-        # Enable touch screen scrolling features
-        self.debug_terminal.viewport().setAttribute(QtCore.Qt.WA_AcceptTouchEvents, True)
-        # Enable kinetic/momentum scrolling
-        self.debug_terminal.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        # Make it easier to grab and scroll with fingers
-        scrollbar = self.debug_terminal.verticalScrollBar()
-        scrollbar.setStyleSheet("""
-            QScrollBar:vertical {
-                width: 18px;
-            }
-        """)
+        # Replace the standard QTextEdit with our touch-friendly version
+        self.debug_terminal = TouchFriendlyTextEdit()
         
         # Auto-scroll toggle for debug terminal
         self.autoscroll_checkbox = QtWidgets.QCheckBox("Auto-scroll debug")
