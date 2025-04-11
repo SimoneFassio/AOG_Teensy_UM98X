@@ -91,7 +91,8 @@ class TouchFriendlyTextEdit(QtWidgets.QTextEdit):
             if self.last_pos is not None:
                 delta = self.last_pos - current_pos
                 scrollbar = self.verticalScrollBar()
-                scrollbar.setValue(scrollbar.value() + delta)
+                # Convert delta to integer before setting value
+                scrollbar.setValue(scrollbar.value() + int(delta))
                 
                 # Update velocity for inertial scrolling
                 self.velocity = delta
@@ -111,7 +112,8 @@ class TouchFriendlyTextEdit(QtWidgets.QTextEdit):
         # Apply deceleration
         self.velocity *= 0.95
         scrollbar = self.verticalScrollBar()
-        scrollbar.setValue(scrollbar.value() + self.velocity)
+        # Convert velocity to integer before setting value
+        scrollbar.setValue(scrollbar.value() + int(self.velocity))
         
         # Stop when velocity becomes negligible
         if abs(self.velocity) < 0.5:
