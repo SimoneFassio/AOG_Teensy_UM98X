@@ -63,7 +63,7 @@ float KalmanWheelAngle   = 0.0;
 #include "zADS1115.h"
 ADS1115_lite adc(ADS1115_DEFAULT_ADDRESS); // Use this for the 16-bit version ADS1115
 
-SimpleKalmanFilter wheelSensor(0.1, 0.1, 0.001);
+SimpleKalmanFilter wheelSensor(0.1, 0.1, 0.1);
 
 #include <IPAddress.h>
 #include "BNO08x_AOG.h"
@@ -306,6 +306,8 @@ void autosteerSetup()
             0.0001f // KalmanQ
         };
     }
+
+    numReadyINS = settings.intervalINS < 0.07 ? 2 : 1;
 
   }
 

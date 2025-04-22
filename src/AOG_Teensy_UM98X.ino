@@ -39,8 +39,8 @@ My main contribution are:
 #define UDP_TX_PACKET_MAX_SIZE 500
 
 /************************* User Settings *************************/
-#define PCB_VERSION_0_1  // PCB version 0.1
-//#define PCB_VERSION_1_0  // PCB version 1.0
+//#define PCB_VERSION_0_1  // PCB version 0.1
+#define PCB_VERSION_1_0  // PCB version 1.0
 
 bool udpPassthrough = false;  // False = GPS neeeds to send GGA, VTG & HPR messages. True = GPS needs to send KSXT messages only.
 bool makeOGI = true;          // Set to true to make PAOGI messages. Else PANDA message will be made.
@@ -50,10 +50,10 @@ struct Config {
     bool using2serialGPS=true;
     bool usingWT61=false;
     float intervalINS=0.1; // 0.1 or 0.05 -> 10 or 20 Hz
-    bool useKalmanForSensor=true;
+    bool useKalmanForSensor=false;
     float minSpeedKalman=0.5; //m /s
     float secondsVarianceBuffer=3; // pay attention to max varianceBuffer len in zKalmanKeya
-    float kalmanR=0.1;
+    float kalmanR=0.3;
     float kalmanQ=0.0001;
 };
 
@@ -89,7 +89,7 @@ Config settings;
 #define GGAReceivedLED 38        // blink if GGA received, ON if INS OK, OFF no GGA     red
 #define DEBUG_LED 13             // ON if debugState > SETUP                          red on board
 #define CAN_ACTIVE_LED 37        // ON if keya heartbeat, blink if hello from AOG but no keya      green
-#define DEBUG_PIN 3             //button
+#define DEBUG_PIN 3              //button and blink 1 time UM981 found already configured, 3 times UM981 configured
 
 #endif
 
@@ -217,13 +217,14 @@ bool setUM982 = false;
 bool gotUM981 = false;
 bool setUM981 = false;
 bool usingUM982 = false;
+bool UM981_aligned = false;
 
 /* A parser is declared with 4 handlers at most */
 NMEAParser<3> parser;
 
 bool blink = false;
 
-bool Autosteer_running = true; // Auto set off in autosteer setup
+bool Autosteer_running = false; // Auto set off in autosteer setup
 bool Ethernet_running = false; // Auto set on in ethernet setup
 
 float tempWT;

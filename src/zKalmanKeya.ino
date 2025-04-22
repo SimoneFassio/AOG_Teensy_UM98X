@@ -34,7 +34,7 @@ void angleStimeUpdate(){
   //dualWheelAngleWT61 = atan(headingRateWT/RAD_TO_DEG*calibrationData.wheelBase/speed*-1) * RAD_TO_DEG * workingDir;
 
   //update kalman measure variance R
-  if(speed > (settings.minSpeedKalman*0.7) && abs(insWheelAngle)<30 && strstr(insStatus, "INS_SOLUTION")!=NULL){
+  if(speed > (settings.minSpeedKalman*0.7) && abs(insWheelAngle)<30 && UM981_aligned){
     varianceBuffer[indexVarBuffer++] = insWheelAngle;
     indexVarBuffer = indexVarBuffer % lenVarianceBuffer;
 
@@ -65,7 +65,7 @@ void angleStimeUpdate(){
       debugPrintln(insStatus);
     }
 
-  if(speed>settings.minSpeedKalman)
+  if(speed>settings.minSpeedKalman && UM981_aligned)
     KalmanUpdate();
 }
 

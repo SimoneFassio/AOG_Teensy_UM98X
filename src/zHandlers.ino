@@ -4,6 +4,7 @@ const char *asciiHex = "0123456789ABCDEF";
 SimpleKalmanFilter rollKF(0.1, 0.1, 0.1);
 
 // the new PANDA sentence buffer
+
 char nmea[110];
 
 // GGA
@@ -27,11 +28,11 @@ bool insActive=false;
 bool insStart=false;
 uint8_t index1=0;
 uint8_t numArg;
-char bufferSERIAL[20];
-char insStatus[20];
+char bufferSERIAL[40];
+char insStatus[25];
 char insLatitude[16];
 char insLongitude[16];
-char velocity[16];
+//char velocity[16];
 
 // HPR
 char solQuality[2];
@@ -51,11 +52,13 @@ void GGA_Handler() // Rec'd GGA
   parser.getArg(0, fixTime);
 
   // latitude
-  parser.getArg(1, latitude);
+  if(!usingUM982 && !UM981_aligned) //else use the one from INS
+    parser.getArg(1, latitude);
   parser.getArg(2, latNS);
 
   // longitude
-  parser.getArg(3, longitude);
+  if(!usingUM982 && !UM981_aligned)
+    parser.getArg(3, longitude);
   parser.getArg(4, lonEW);
 
   // fix quality
@@ -103,7 +106,7 @@ void VTG_Handler()
 
   // vtg Speed knots
   parser.getArg(4, speedKnots);
-  if(atof(speedKnots)<0.2)
+  if(atof(speedKnots)<0.05)
     snprintf(speedKnots, 5, "0.0");
   speed = atof(speedKnots) * 1852 / 3600; // m/s
 
@@ -127,12 +130,13 @@ void VTG_Handler()
 
 void DegreesToDegMinSec(double x, char* result, int resultSize)
 {
-  int deg = x;
-  double minutesRemainder = abs(x - deg) * 60;
-  if(minutesRemainder<10)
-    snprintf(result, resultSize, "%02d0%.8f", deg, minutesRemainder);
+  int deg = (int)floor(x);
+  double minutes = fabs(x - deg) * 60.0;
+
+  if (minutes < 10.0)
+    snprintf(result, resultSize, "%02d0%.8f", deg, minutes);
   else
-  snprintf(result, resultSize, "%02d%.8f", deg, minutesRemainder);
+    snprintf(result, resultSize, "%02d%.8f",  deg, minutes);
 }
 
 void readSerialIns(char c){
@@ -142,7 +146,7 @@ void readSerialIns(char c){
           numArg = 2;
           index1=0;
           insStart=true;
-          for(int g=0; g<20; g++)
+          for(int g=0; g<40; g++)
             bufferSERIAL[g] = '\0';
           if(debugState == GPS || send_GPS){
             debugPrint(systick_millis_count);
@@ -153,31 +157,48 @@ void readSerialIns(char c){
           index1++;
           switch(numArg){
             case 2: //INSstatus
-              for(int g=0; g<20; g++){
-                insStatus[g] = bufferSERIAL[g];
-              }
+              strncpy(insStatus, bufferSERIAL, sizeof(insStatus));
+              insStatus[24] = '\0';
               if(debugState == GPS || send_GPS){
                 debugPrint("INSstatus: ");
                 debugPrint(bufferSERIAL);
                 debugPrint("  ");
               }
               break;
-            case 4: //latitude
+            case 4: { //latitude
               if(debugState == GPS || send_GPS){
                 debugPrint("latitude: ");
                 debugPrint(bufferSERIAL);
                 debugPrint("  ");
               }
-              DegreesToDegMinSec(atof(bufferSERIAL), insLatitude, 12);
+              bufferSERIAL[15] = '\0';
+              double lat = strtod(bufferSERIAL, NULL);
+              if (lat == 0.0) {
+                strncpy(insLatitude, latitude, sizeof(insLatitude));
+                UM981_aligned = false;
+              } else {
+                DegreesToDegMinSec(lat, insLatitude, sizeof(insLatitude));
+                UM981_aligned = true;
+              }
               break;
-            case 5: //longitude
+            }
+
+            case 5: { //longitude
               if(debugState == GPS || send_GPS){
                 debugPrint("longitude: ");
                 debugPrint(bufferSERIAL);
                 debugPrint("  ");
               }
-              DegreesToDegMinSec(atof(bufferSERIAL), insLongitude, 12);
+              bufferSERIAL[15] = '\0';
+              double lon = strtod(bufferSERIAL, NULL);
+              if (lon == 0.0) {
+                strncpy(insLongitude, longitude, sizeof(insLongitude));
+              } else {
+                DegreesToDegMinSec(lon, insLongitude, sizeof(insLongitude));
+              }
               break;
+            }
+
             case 11: //roll
               if(debugState == GPS || send_GPS){
                 debugPrint("roll:");
@@ -252,6 +273,9 @@ void readSerialIns(char c){
 // UM982 Support
 void HPR_Handler()
 {
+  // make sure we are using UM982, even if not got during setup
+  usingUM982 = true;
+
   // HPR Heading
   parser.getArg(1, umHeading);
   umHeading[6] = '\0';
@@ -262,7 +286,7 @@ void HPR_Handler()
   // HPR Substitute pitch for roll
   if (parser.getArg(2, umRoll))
   {
-    rollDual = atof(umRoll); //-0.2
+    rollDual = atof(umRoll);
 
     if(debugState == ROLL){
       debugPrint("rollDual:");
@@ -299,10 +323,7 @@ void BuildNmea(void)
   strcat(nmea, fixTime);
   strcat(nmea, ",");
 
-  if(strstr(insStatus, "INS_SOLUTION")!=NULL && makeOGI) { //use INS if solution good
-    if(debugState == GPS || send_GPS)
-      debugPrintln("using INS");
-
+  if(!usingUM982) {
     strcat(nmea, insLatitude);
     strcat(nmea, ",");
 
@@ -316,8 +337,6 @@ void BuildNmea(void)
     strcat(nmea, ",");
   }
   else {
-    if(debugState == GPS || send_GPS)
-      debugPrintln("using GGA");
     strcat(nmea, latitude);
     strcat(nmea, ",");
 
