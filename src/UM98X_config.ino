@@ -46,6 +46,8 @@ void checkUM981(){
 void configureUM981(){
   SerialGPS.write("CONFIG\r\n"); // Request the UM981 Configuration
   delay(200);
+  setUM981 = false;
+  digitalWrite(DEBUG_LED, HIGH); // Turn on the debug LED to indicate configuration process
 
   while (SerialGPS.available() && !setUM981)
   {
@@ -56,6 +58,7 @@ void configureUM981(){
     // Check the "UM981 configured" flag.
     if (strstr(incoming, "CONFIG ANTENNADELTAHEN") != NULL)
     {
+      digitalWrite(DEBUG_LED, LOW); // Turn off the debug LED
       debugPrintln("Got the config line");
       char buffer[100];
       sprintf(buffer, "CONFIG ANTENNADELTAHEN %.2f", calibrationData.configFlag);
@@ -84,6 +87,7 @@ void configureUM981(){
         debugPrintln("Setting rover mode");
         SerialGPS.write("MODE ROVER SURVEY\r\n");
         delay(100);
+        digitalWrite(DEBUG_LED, HIGH);
 
         // Send IMUTOANT configuration
         debugPrintln("Setting INS");
@@ -136,6 +140,7 @@ void configureUM981(){
         debugPrintln("Setting rtkheight smoothing");
         SerialGPS.write("CONFIG SMOOTH RTKHEIGHT 10\r\n");
         delay(100);
+        digitalWrite(DEBUG_LED, LOW);
 
         // Set COM1 to 460800
         debugPrintln("Setting COM1 to 460800 bps");
@@ -156,6 +161,7 @@ void configureUM981(){
         debugPrintln("Setting VTG");
         SerialGPS.write("GPVTG COM1 0.1\r\n");
         delay(100);
+        digitalWrite(DEBUG_LED, HIGH);
 
         // Set INS message and rate
         debugPrintln("Setting INS");
@@ -193,6 +199,8 @@ void configureUM981(){
         // Reset the serial buffer size
         SerialGPS.addMemoryForRead(GPSrxbuffer, serial_buffer_size);
         SerialGPS.addMemoryForWrite(GPStxbuffer, serial_buffer_size);
+
+        digitalWrite(DEBUG_LED, LOW); // Turn off the debug LED to indicate configuration process is done
       }
     }
   }
