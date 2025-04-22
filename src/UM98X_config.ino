@@ -44,10 +44,10 @@ void checkUM981(){
 }
 
 void configureUM981(){
+  digitalWrite(DEBUG_LED, HIGH); // Turn on the debug LED to indicate configuration process
   SerialGPS.write("CONFIG\r\n"); // Request the UM981 Configuration
   delay(200);
   setUM981 = false;
-  digitalWrite(DEBUG_LED, HIGH); // Turn on the debug LED to indicate configuration process
 
   while (SerialGPS.available() && !setUM981)
   {

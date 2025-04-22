@@ -69,7 +69,7 @@ Config settings;
 
 // Status LED's   
 #define GGAReceivedLED 12        // blink if GGA received, ON if INS OK, OFF no GGA     blue
-#define DEBUG_LED 13             // ON if debugState > SETUP                          red on board
+#define DEBUG_LED 13             // ON if debugState > SETUP and blink 1 time UM981 found already configured, 3 times UM981 configured   red on board
 #define AUTOSTEER_ACTIVE_LED 10  // blink if hello from AOG, ON if steering,          red
 #define CAN_ACTIVE_LED 9         // ON if keya heartbeat,                             yellow
 #define DEBUG_PIN 37             //button
@@ -87,9 +87,9 @@ Config settings;
 
 // Status LED's   
 #define GGAReceivedLED 38        // blink if GGA received, ON if INS OK, OFF no GGA     red
-#define DEBUG_LED 13             // ON if debugState > SETUP                          red on board
+#define DEBUG_LED 13             // ON if debugState > SETUP and blink 1 time UM981 found already configured, 3 times UM981 configured    red on board
 #define CAN_ACTIVE_LED 37        // ON if keya heartbeat, blink if hello from AOG but no keya      green
-#define DEBUG_PIN 3              //button and blink 1 time UM981 found already configured, 3 times UM981 configured
+#define DEBUG_PIN 3              //button 
 
 #endif
 

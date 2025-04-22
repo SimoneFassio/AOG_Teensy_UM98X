@@ -76,7 +76,7 @@ void GGA_Handler() // Rec'd GGA
   // time of last DGPS update
   parser.getArg(12, ageDGPS);
 
-  if (strstr(insStatus, "INS_SOLUTION")!=NULL) // led always on if INS is aligned
+  if (UM981_aligned) // led always on if INS is aligned
   {
     digitalWrite(GGAReceivedLED, HIGH);
   }
@@ -159,9 +159,15 @@ void readSerialIns(char c){
             case 2: //INSstatus
               strncpy(insStatus, bufferSERIAL, sizeof(insStatus));
               insStatus[24] = '\0';
+              if (strstr(insStatus, "INS_SOLUTION_GOOD")!=NULL)
+                UM981_aligned = true;
+              else
+                UM981_aligned = false;
               if(debugState == GPS || send_GPS){
                 debugPrint("INSstatus: ");
                 debugPrint(bufferSERIAL);
+                debugPrint("  UM981_aligned:");
+                debugPrint(UM981_aligned);
                 debugPrint("  ");
               }
               break;
@@ -175,10 +181,8 @@ void readSerialIns(char c){
               double lat = strtod(bufferSERIAL, NULL);
               if (lat == 0.0) {
                 strncpy(insLatitude, latitude, sizeof(insLatitude));
-                UM981_aligned = false;
               } else {
                 DegreesToDegMinSec(lat, insLatitude, sizeof(insLatitude));
-                UM981_aligned = true;
               }
               break;
             }
